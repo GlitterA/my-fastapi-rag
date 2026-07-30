@@ -6,5 +6,5 @@ app = FastAPI()
 @app.get("/")
 def root():
     return {
-        "message": "SR RAG System"
+        "message": "SR RAG System1"
     }
