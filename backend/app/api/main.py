@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from api.routes import login, qa
+from app.api.routes import login, qa
 
 api_router = APIRouter()
 

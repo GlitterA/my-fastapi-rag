@@ -1,5 +1,5 @@
-from model.user_model import User
-from core.securiy import get_password_hash, verify_password
+from app.model.user_model import User
+from app.core.securiy import verify_password
 
 saved_username = {"张三": "$2b$12$r36cjRG.pnbVBHb/KBR/muWMMpE51ecyrDi2k81kYW0wBkFZvPSie",
                   "李四": "$2b$12$Z6tJ3OviD.vlDmSnG57TTuV0lZL5mnkNuQxIo6Q78xUqAH7iGokgm",

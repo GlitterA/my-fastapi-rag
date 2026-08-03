@@ -1,0 +1,2 @@
+CHAT_CONFIG:
+  LLM_MODEL: "qwen3.7-plus"

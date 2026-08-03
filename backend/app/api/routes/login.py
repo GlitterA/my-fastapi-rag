@@ -1,11 +1,11 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
-from model.user_model import Token
-from crud import user_curd
+from app.model.user_model import Token
+from app.crud import user_curd
 from datetime import timedelta
-from core.config import settings
-from core.securiy import create_access_token
+from app.core.settings import settings
+from app.core.securiy import create_access_token
 
 route = APIRouter()
 

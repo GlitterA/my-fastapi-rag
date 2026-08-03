@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from passlib.context import CryptContext
 from typing import Any
 from jose import jwt
-from core.config import settings
+from app.core.settings import settings
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def create_access_token(subject: str | Any, expire_delta: timedelta) -> str:
