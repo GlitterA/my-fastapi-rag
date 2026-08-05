@@ -1,14 +1,20 @@
 from fastapi import FastAPI
 from app.api.main import api_router
 from contextlib import asynccontextmanager
-from app.rag.indexing import init_vector_store
+from app.rag.vectorstore import init_vector_store
+from app.rag.ingest import ingest_documents
 from loguru import logger
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
 
-    logger.info(f"数据库初始化")
-    init_vector_store()
+    logger.info("初始化向量数据库")
+    vector_store = init_vector_store()
+    ingest_documents(
+        "./knowledge",
+        vector_store
+    )
+    app.state.vector_store = vector_store
 
     yield
 

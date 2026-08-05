@@ -2,7 +2,7 @@ import os.path
 from typing import Any
 import yaml
 from app.rag.chains import build_history_aware_retriever, build_stuff_documents_chain, build_retrieval_chain
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from app.core.logger import logger
 from app.core.settings import settings
 from app.schema.chat_schema import ChatBody
@@ -12,7 +12,7 @@ from langchain_openai import ChatOpenAI
 from langchain_core.vectorstores import VectorStore
 from langchain_core.runnables import Runnable
 from langchain_core.documents import Document
-from app.rag.loader import vector_store
+from app.core.deps import get_vector_store
 
 route = APIRouter()
 
@@ -87,10 +87,9 @@ def get_conversational_rag_chain(retriever_chain: Runnable):
 
 
 @route.post("/test/chat")
-async def chat_action(request: ChatBody):
+async def chat_action(request: ChatBody,
+                      vector_store: VectorStore = Depends(get_vector_store)):
     global chat_history
-
-    retriever = vector_store.as_retriever()
 
     # 指定用户消息
     user_message = HumanMessage(content=request.message)
@@ -103,6 +102,7 @@ async def chat_action(request: ChatBody):
     logger.info(f"User message: {user_message.content}")
     logger.info(f"Chat history: {chat_history}")
     logger.info(f"request.message：{request.message}")
+
     # 调用链
     response = conversation_rag_chain.invoke(
         {"chat_history": chat_history, "input": request.message}

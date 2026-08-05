@@ -5,7 +5,7 @@ from langchain_core.runnables import Runnable
 from langchain_core.runnables import RunnableBranch, RunnableLambda, RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.documents import Document
-
+from loguru import logger
 
 def build_history_aware_retriever(
         llm: LanguageModelLike,
