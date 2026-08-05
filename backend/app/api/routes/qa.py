@@ -13,6 +13,7 @@ from langchain_core.vectorstores import VectorStore
 from langchain_core.runnables import Runnable
 from langchain_core.documents import Document
 from app.core.deps import get_vector_store
+from fastapi.responses import StreamingResponse
 
 route = APIRouter()
 
@@ -104,13 +105,30 @@ async def chat_action(request: ChatBody,
     logger.info(f"request.message：{request.message}")
 
     # 调用链
-    response = conversation_rag_chain.invoke(
-        {"chat_history": chat_history, "input": request.message}
+    # response = conversation_rag_chain.invoke(
+    #     {"chat_history": chat_history, "input": request.message}
+    # )
+
+    # 流式输出调用链
+    async def generate():
+        full_response = ""
+
+        async for chunk in conversation_rag_chain.astream(
+                {
+                    "chat_history": chat_history,
+                    "input": request.message
+                }
+        ):
+            full_response += chunk
+
+            yield chunk
+
+        # 更新历史
+        chat_history.append(user_message)
+        ai_message = AIMessage(content=full_response)
+        chat_history.append(ai_message)
+
+    return StreamingResponse(
+        generate(),
+        media_type="text/plain"
     )
-
-    # 更新历史
-    chat_history.append(user_message)
-    ai_message = AIMessage(content=response)
-    chat_history.append(ai_message)
-
-    return {"data": response}
