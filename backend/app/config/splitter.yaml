@@ -1,6 +1,5 @@
 # text文本加载分割参数
 
-SPLITTER_CONFIG:
-  CHUNK_SIZE: 500
-  CHUNK_OVERLAP: 50
-  
+splitter:
+  chunk_size: 500
+  chunk_overlap: 50

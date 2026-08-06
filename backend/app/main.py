@@ -15,7 +15,7 @@ async def lifespan(app: FastAPI):
     logger.info("初始化向量数据库")
     vector_store = init_vector_store()
     ingest_documents(
-        "./knowledge",
+        "./data/knowledge",
         vector_store
     )
     app.state.vector_store = vector_store

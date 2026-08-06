@@ -1,5 +1,5 @@
 # 负责文档的加载
-
+from tqdm import tqdm
 from langchain_core.vectorstores import VectorStore
 from app.rag.documents import load_documents
 from app.rag.splitter import get_text_splitter
@@ -25,7 +25,6 @@ def ingest_documents(
 
     # 文档切分
     chunks = get_text_splitter().split_documents(documents)
-    for i in range(0, len(chunks), batch_size):
+    for i in tqdm(range(0, len(chunks), batch_size), desc="Ingesting"):
         batch = chunks[i:i + batch_size]
-        # 写入向量库
         vector_store.add_documents(batch)

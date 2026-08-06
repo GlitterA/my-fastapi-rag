@@ -1,20 +1,10 @@
 # 进行RAG的记忆管理
 import os
-from typing import Any
-import yaml
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
 from pathlib import Path
 import json
 from loguru import logger
-
-# 设置配置文件路径
-config_path = os.path.join(os.path.dirname(__file__), "..", "config/chat.yaml")
-
-# 读取配置文件
-with open(config_path, "r", encoding="utf-8") as config_file:
-    config: dict[str, Any] = yaml.safe_load(config_file)
-chat_config = config.get("CHAT_CONFIG", {})
-
+from app.config import config
 
 class ChatMemory:
 
@@ -32,9 +22,9 @@ class ChatMemory:
         }
         """
         # 最大历史对话条目数
-        self.max_history_len = chat_config["MAX_HISTORY"]
+        self.max_history_len = config.chat.max_history
         # 本地存储路径
-        self.save_dir = Path(chat_config["SAVE_DIR"])
+        self.save_dir = Path(config.chat.save_dir)
         self.save_dir.mkdir(
             parents=True,
             exist_ok=True

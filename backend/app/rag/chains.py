@@ -1,6 +1,3 @@
-import os
-from typing import Any
-import yaml
 from langchain_openai.chat_models import ChatOpenAI
 from app.core.settings import settings
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -13,17 +10,10 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.documents import Document
 from loguru import logger
 from langchain_core.vectorstores import VectorStore
-
-# 设置配置文件路径
-config_path = os.path.join(os.path.dirname(__file__), "..", "config/chat.yaml")
-
-# 读取配置文件
-with open(config_path, "r", encoding="utf-8") as config_file:
-    config: dict[str, Any] = yaml.safe_load(config_file)
-chat_config = config.get("CHAT_CONFIG", {})
+from app.config import config
 
 # 打印对话配置日志
-logger.info(f"Chat config: {chat_config}")
+logger.info(f"Chat config: {config.chat}")
 
 def build_history_aware_retriever(
         llm: LanguageModelLike,
@@ -116,7 +106,7 @@ def get_context_retriever_chain(vector_store: VectorStore) \
     logger.info("构建上下文检索链")
     # 指定语言模型
     llm = ChatOpenAI(
-        model=chat_config["LLM_MODEL"],
+        model=config.chat.llm_model,
         api_key=settings.DASHSCOPE_API_KEY,
         base_url=settings.DASHSCOPE_BASE_URL
     )
@@ -144,7 +134,7 @@ def get_context_retriever_chain(vector_store: VectorStore) \
 def get_conversational_rag_chain(retriever_chain: Runnable):
     logger.info("构建rag会话链")
     llm = ChatOpenAI(
-        model=chat_config["LLM_MODEL"],
+        model=config.chat.llm_model,
         api_key=settings.DASHSCOPE_API_KEY,
         base_url=settings.DASHSCOPE_BASE_URL
     )
