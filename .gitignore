@@ -1,0 +1,20 @@
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Virtual environment
+.venv/
+
+# IDE
+.idea/
+
+# Build
+dist/
+build/
+*.spec
+
+# Environment
+.env
+
+# local data
+data/

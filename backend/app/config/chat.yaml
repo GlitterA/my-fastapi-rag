@@ -1,2 +1,4 @@
 CHAT_CONFIG:
   LLM_MODEL: "qwen3.7-plus"
+  MAX_HISTORY: 10
+  SAVE_DIR: "./data/chat_history"

@@ -1,3 +1,9 @@
+import os
+from typing import Any
+import yaml
+from langchain_openai.chat_models import ChatOpenAI
+from app.core.settings import settings
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.language_models import LanguageModelLike
 from langchain_core.retrievers import BaseRetriever
 from langchain_core.prompts import BasePromptTemplate
@@ -6,6 +12,18 @@ from langchain_core.runnables import RunnableBranch, RunnableLambda, RunnablePas
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.documents import Document
 from loguru import logger
+from langchain_core.vectorstores import VectorStore
+
+# 设置配置文件路径
+config_path = os.path.join(os.path.dirname(__file__), "..", "config/chat.yaml")
+
+# 读取配置文件
+with open(config_path, "r", encoding="utf-8") as config_file:
+    config: dict[str, Any] = yaml.safe_load(config_file)
+chat_config = config.get("CHAT_CONFIG", {})
+
+# 打印对话配置日志
+logger.info(f"Chat config: {chat_config}")
 
 def build_history_aware_retriever(
         llm: LanguageModelLike,
@@ -16,7 +34,7 @@ def build_history_aware_retriever(
     Runnable
     传入类型形如：
     {
-        ”input“: str
+        "input": str
         "chat_history": str
         ...
     }
@@ -88,3 +106,56 @@ def build_retrieval_chain(
                 context=retriever
             ) | document_chain
     )
+
+def get_context_retriever_chain(vector_store: VectorStore) \
+        -> Runnable[dict, list[Document]]:
+    """
+    获得具有历史感知能力的检索链条
+    """
+    # 打印日志
+    logger.info("构建上下文检索链")
+    # 指定语言模型
+    llm = ChatOpenAI(
+        model=chat_config["LLM_MODEL"],
+        api_key=settings.DASHSCOPE_API_KEY,
+        base_url=settings.DASHSCOPE_BASE_URL
+    )
+    # 指定检索器
+    retriever = vector_store.as_retriever()
+    # 指定prompt
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            (
+                "system",
+                "根据聊天历史和用户最新问题，生成一个用于检索的搜索查询"
+            ),
+            MessagesPlaceholder("chat_history"),
+            ("human", "{input}")
+        ]
+    )
+    # 构造链
+    retriever_chain = build_history_aware_retriever(
+        llm=llm, retriever=retriever, prompt=prompt
+    )
+
+    return retriever_chain
+
+
+def get_conversational_rag_chain(retriever_chain: Runnable):
+    logger.info("构建rag会话链")
+    llm = ChatOpenAI(
+        model=chat_config["LLM_MODEL"],
+        api_key=settings.DASHSCOPE_API_KEY,
+        base_url=settings.DASHSCOPE_BASE_URL
+    )
+
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            ("system", "基于以下上下文回答用户问题：{context}"),
+            MessagesPlaceholder(variable_name="chat_history"),
+            ("human", "{input}")
+        ]
+    )
+
+    stuff_documents_chain = build_stuff_documents_chain(llm, prompt)
+    return build_retrieval_chain(retriever_chain, stuff_documents_chain)

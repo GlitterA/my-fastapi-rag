@@ -4,9 +4,13 @@ from contextlib import asynccontextmanager
 from app.rag.vectorstore import init_vector_store
 from app.rag.ingest import ingest_documents
 from loguru import logger
+from app.rag.chains import get_conversational_rag_chain, get_context_retriever_chain
+from app.rag.memory import ChatMemory
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+
+    logger.info("初始化RAG资源")
 
     logger.info("初始化向量数据库")
     vector_store = init_vector_store()
@@ -16,7 +20,18 @@ async def lifespan(app: FastAPI):
     )
     app.state.vector_store = vector_store
 
+    logger.info("初始化langchain调用链")
+    retriever_chain = get_context_retriever_chain(vector_store)
+    rag_chain = get_conversational_rag_chain(retriever_chain)
+    app.state.rag_chain = rag_chain
+
+    logger.info("初始化用户历史信息")
+    app.state.chat_memory = ChatMemory()
+
+
     yield
+
+    logger.info("释放资源")
 
 app = FastAPI(
     lifespan=lifespan
