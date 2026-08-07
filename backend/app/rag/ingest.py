@@ -1,17 +1,19 @@
 # 负责文档的加载
 from tqdm import tqdm
+from loguru import logger
 from langchain_core.vectorstores import VectorStore
-from app.rag.documents import load_documents
+from app.rag.documents import load_files, load_file
 from app.rag.splitter import get_text_splitter
+from pathlib import Path
 
 
-def ingest_documents(
-        source_dir: str,
+def ingest_files(
+        source_dir: Path,
         vector_store: VectorStore,
         batch_size=20
 ):
     """
-    加载文件并写入向量数据库
+    加载目录下所有支持文件并写入向量数据库
 
     source_dir:
         原始文档目录
@@ -20,11 +22,40 @@ def ingest_documents(
         向量数据库实例
     """
 
+    if vector_store._collection.count() > 0:
+        logger.info("向量库已有数据，跳过全量写入")
+        return
+
     # 加载文档
-    documents = load_documents(source_dir)
+    documents = load_files(source_dir)
 
     # 文档切分
     chunks = get_text_splitter().split_documents(documents)
     for i in tqdm(range(0, len(chunks), batch_size), desc="Ingesting"):
         batch = chunks[i:i + batch_size]
         vector_store.add_documents(batch)
+
+
+def ingest_file(
+        file_path: Path,
+        vector_store: VectorStore,
+        batch_size=20
+):
+    # 获取文档
+    documents = load_file(file_path)
+    logger.info(f"文档名：{documents}")
+
+    # 切分文档
+    chunks = get_text_splitter().split_documents(documents)
+    # 添加源数据
+    for chunk in chunks:
+        chunk.metadata["source"] = file_path.name
+
+    logger.info(f"切分后的文档：{chunks}")
+
+    logger.info("将文档载入数据库...")
+    # 加入数据库
+    for i in tqdm(range(0, len(chunks), batch_size), desc="Ingesting"):
+        batch = chunks[i:i + batch_size]
+        vector_store.add_documents(batch)
+

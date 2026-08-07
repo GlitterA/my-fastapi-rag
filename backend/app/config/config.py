@@ -1,10 +1,9 @@
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings
 from pathlib import Path
-import yaml
+from app.config.config_loader import load_yaml_configs
 
 CONFIG_DIR = Path(__file__).parent
-
 
 class ChatConfig(BaseModel):
     llm_model: str = "qwen3.7-plus"
@@ -22,13 +21,4 @@ class Config(BaseSettings):
     splitter: SplitterConfig
 
 
-def _load_config() -> Config:
-    """加载多个 YAML 文件并合并"""
-    merged: dict = {}
-    for yaml_file in (CONFIG_DIR / "chat.yaml", CONFIG_DIR / "splitter.yaml"):
-        with open(yaml_file, encoding="utf-8") as f:
-            merged.update(yaml.safe_load(f))
-    return Config(**merged)
-
-
-config = _load_config()
+configs = Config(**load_yaml_configs(CONFIG_DIR))

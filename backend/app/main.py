@@ -2,10 +2,11 @@ from fastapi import FastAPI
 from app.api.main import api_router
 from contextlib import asynccontextmanager
 from app.rag.vectorstore import init_vector_store
-from app.rag.ingest import ingest_documents
+from app.rag.ingest import ingest_files
 from loguru import logger
 from app.rag.chains import get_conversational_rag_chain, get_context_retriever_chain
 from app.rag.memory import ChatMemory
+from pathlib import Path
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -14,8 +15,8 @@ async def lifespan(app: FastAPI):
 
     logger.info("初始化向量数据库")
     vector_store = init_vector_store()
-    ingest_documents(
-        "./data/knowledge",
+    ingest_files(
+        Path("./data/knowledge"),
         vector_store
     )
     app.state.vector_store = vector_store

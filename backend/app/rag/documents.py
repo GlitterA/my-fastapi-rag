@@ -31,7 +31,10 @@ LOADER_MAP = {
 }
 
 
-def load_documents(directory: str) -> list[Document]:
+def load_files(directory: Path) -> list[Document]:
+    """
+    加载 directory 下的所有文档
+    """
     documents = []
 
     for file in Path(directory).iterdir():
@@ -50,4 +53,20 @@ def load_documents(directory: str) -> list[Document]:
         )
 
     return documents
+
+def load_file(
+        file_path: Path
+) -> list[Document]:
+    suffix = file_path.suffix.lower()
+
+    if suffix not in LOADER_MAP:
+        raise ValueError(
+            f"不支持的文件格式：{suffix}"
+        )
+
+    loader = LOADER_MAP[suffix](file_path)
+
+    return loader.load()
+
+
 

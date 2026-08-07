@@ -4,7 +4,7 @@ from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
 from pathlib import Path
 import json
 from loguru import logger
-from app.config import config
+from app.config import configs
 
 class ChatMemory:
 
@@ -22,9 +22,9 @@ class ChatMemory:
         }
         """
         # 最大历史对话条目数
-        self.max_history_len = config.chat.max_history
+        self.max_history_len = configs.chat.max_history
         # 本地存储路径
-        self.save_dir = Path(config.chat.save_dir)
+        self.save_dir = Path(configs.chat.save_dir)
         self.save_dir.mkdir(
             parents=True,
             exist_ok=True

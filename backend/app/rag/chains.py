@@ -10,10 +10,10 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.documents import Document
 from loguru import logger
 from langchain_core.vectorstores import VectorStore
-from app.config import config
+from app.config import configs
 
 # 打印对话配置日志
-logger.info(f"Chat config: {config.chat}")
+logger.info(f"Chat config: {configs.chat}")
 
 def build_history_aware_retriever(
         llm: LanguageModelLike,
@@ -106,7 +106,7 @@ def get_context_retriever_chain(vector_store: VectorStore) \
     logger.info("构建上下文检索链")
     # 指定语言模型
     llm = ChatOpenAI(
-        model=config.chat.llm_model,
+        model=configs.chat.llm_model,
         api_key=settings.DASHSCOPE_API_KEY,
         base_url=settings.DASHSCOPE_BASE_URL
     )
@@ -134,7 +134,7 @@ def get_context_retriever_chain(vector_store: VectorStore) \
 def get_conversational_rag_chain(retriever_chain: Runnable):
     logger.info("构建rag会话链")
     llm = ChatOpenAI(
-        model=config.chat.llm_model,
+        model=configs.chat.llm_model,
         api_key=settings.DASHSCOPE_API_KEY,
         base_url=settings.DASHSCOPE_BASE_URL
     )

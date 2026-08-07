@@ -9,7 +9,6 @@ from app.core.securiy import create_access_token
 
 route = APIRouter()
 
-
 @route.post("/login/access-token")
 async def login_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) \
         -> Token:
