@@ -1,15 +1,16 @@
-# app/core/db.py
 from sqlmodel import SQLModel, create_engine
-from sqlalchemy.pool import StaticPool
+import os
 
 # SQLite 数据库文件路径
-SQLITE_URL = "sqlite:///./data/SQLite/app.db"
+SQLITE_URL = os.getenv(
+    "SQLITE_URL",
+    "sqlite:///./data/SQLite/app.db"
+)
 
 # 创建 engine（数据库连接池）
 engine = create_engine(
     SQLITE_URL,
     connect_args={"check_same_thread": False},  # FastAPI 必须
-    poolclass=StaticPool,  # 单线程安全（开发很友好）
 )
 
 

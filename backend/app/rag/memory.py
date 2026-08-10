@@ -34,12 +34,12 @@ class ChatMemory:
 
     def _get_file(
             self,
-            session_id: str
+            username: str
     ) -> Path:
         """
         获取当前session_id用户的历史jsonl文件的Path对象
         """
-        return Path(os.path.join(self.save_dir, f"{session_id}.jsonl"))
+        return Path(os.path.join(self.save_dir, f"{username}.jsonl"))
 
     def load_from_file(
             self,
@@ -91,21 +91,21 @@ class ChatMemory:
 
     def get_history(
             self,
-            session_id: str
+            username: str
     ) -> list[BaseMessage]:
         """
         获得session_id用户的历史信息
         """
 
         # 查内存
-        if session_id in self.cache:
-            return self.cache[session_id]
+        if username in self.cache:
+            return self.cache[username]
 
         # 从文件恢复
-        history = self.load_from_file(session_id)
+        history = self.load_from_file(username)
 
         # 放入内存
-        self.cache[session_id] = history
+        self.cache[username] = history
 
         return history
 

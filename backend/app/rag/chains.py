@@ -15,6 +15,7 @@ from app.config import configs
 # 打印对话配置日志
 logger.info(f"Chat config: {configs.chat}")
 
+
 def build_history_aware_retriever(
         llm: LanguageModelLike,
         retriever: BaseRetriever,
@@ -92,13 +93,14 @@ def build_retrieval_chain(
     document_chain的输出类型
     """
     return (
-            RunnablePassthrough.assign(
-                context=retriever
-            )
-            .assign(
-                answer=document_chain
-            )
+        RunnablePassthrough.assign(
+            context=retriever
+        )
+        .assign(
+            answer=document_chain
+        )
     )
+
 
 def get_context_retriever_chain(vector_store: VectorStore) \
         -> Runnable[dict, list[Document]]:
@@ -114,7 +116,11 @@ def get_context_retriever_chain(vector_store: VectorStore) \
         base_url=settings.DASHSCOPE_BASE_URL
     )
     # 指定检索器
-    retriever = vector_store.as_retriever()
+    retriever = vector_store.as_retriever(
+        search_kwargs={
+            "k": 5
+        }
+    )
     # 指定prompt
     prompt = ChatPromptTemplate.from_messages(
         [
@@ -144,9 +150,26 @@ def get_conversational_rag_chain(retriever_chain: Runnable):
 
     prompt = ChatPromptTemplate.from_messages(
         [
-            ("system", "基于以下上下文回答用户问题：{context}"),
+            ("system",
+             """
+            你是一个专业金融知识助手。
+            
+            回答要求：
+            1. 只能依据提供的上下文回答。
+            2. 如果上下文没有答案，明确回答“不知道”。
+            3. 不允许编造金融数据。
+
+             """
+             ),
             MessagesPlaceholder(variable_name="chat_history"),
-            ("human", "{input}")
+            ("human",
+             """
+             上下文：
+             {context}
+             
+             问题：
+             {input}
+             """)
         ]
     )
 

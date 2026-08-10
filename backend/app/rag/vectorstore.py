@@ -15,3 +15,6 @@ def init_vector_store():
         persist_directory="./data/chroma"
     )
     return vector_store
+
+def is_empty(vector_store):
+    return vector_store._collection.count() == 0

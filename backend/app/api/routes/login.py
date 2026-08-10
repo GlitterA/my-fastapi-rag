@@ -5,7 +5,7 @@ from app.model.user_model import Token
 from app.crud import user_curd
 from datetime import timedelta
 from app.core.settings import settings
-from app.core.securiy import create_access_token
+from app.core.security import create_access_token
 from sqlmodel import Session
 from app.core.db import get_session
 route = APIRouter()

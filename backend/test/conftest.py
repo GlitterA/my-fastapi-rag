@@ -1,32 +1,75 @@
 import pytest
-from httpx import AsyncClient, ASGITransport
-from sqlmodel import SQLModel, create_engine, Session
+import uuid
+from fastapi.testclient import TestClient
+import os
+
+os.environ["SQLITE_URL"] = (
+    "sqlite:///./data/SQLite/test.db"
+)
+os.environ["ENVIRONMENT"] = "test"
 from app.main import app
-from app.core.db import get_session
 
-# 用内存 SQLite 替代真实数据库
-TEST_DB_URL = "sqlite:///:memory:"
-
-@pytest.fixture(name="session")
-def session_fixture():
-    engine = create_engine(
-        TEST_DB_URL,
-        connect_args={"check_same_thread": False}
-    )
-    SQLModel.metadata.create_all(engine)
-    with Session(engine) as session:
-        yield session
-
-@pytest.fixture(name="client")
-def client_fixture(session: Session):
-    # 用测试 session 覆盖依赖
-    def override_get_session():
-        yield session
 
 @pytest.fixture
-def base_url():
-    return "localhost:8000"
+def client():
+    """
+    创建FastAPI测试客户端
 
-    app.dependency_overrides[get_session] = override_get_session
-    yield TestClient(app)
-    app.dependency_overrides.clear()
+    用于模拟HTTP请求
+    """
+    with TestClient(app) as c:
+        yield c
+
+
+@pytest.fixture
+def test_username():
+    """
+    每次测试生成唯一用户名
+
+    避免污染真实数据库
+    """
+    return f"pytest_{uuid.uuid4().hex[:8]}"
+
+
+@pytest.fixture
+def auth_headers(client, test_username):
+    response = client.post(
+        "/create",
+        json={
+            "username": test_username,
+            "password": "123456"
+        }
+    )
+
+    assert response.status_code == 200
+
+    # 登录获取token
+    response = client.post(
+        "/login/access-token",
+        data={
+            "username": test_username,
+            "password": "123456"
+        }
+    )
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert "access_token" in data
+    assert data["token_type"] == "bearer"
+
+    token = response.json()["access_token"]
+    return {
+        "headers": {
+            "Authorization": f"Bearer {token}"
+        },
+        "username": test_username
+    }
+
+
+@pytest.fixture
+def vector_store(client):
+    """
+    获取测试期间FastAPI初始化好的向量数据库
+    """
+    return app.state.vector_store

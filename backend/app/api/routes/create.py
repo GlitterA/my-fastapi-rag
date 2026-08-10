@@ -1,14 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException
 from app.schema.user_schema import UserRequest, UserResponse
 from app.crud.user_curd import get_user_by_username, create_user
-from app.core.securiy import get_password_hash
+from app.core.security import get_password_hash
 from app.core.db import get_session
 from sqlmodel import Session
 
 route = APIRouter()
 
 
-@route.post("/create")
+@route.post("/create", response_model=UserResponse)
 def create_new_user(
         request: UserRequest,
         session: Session = Depends(get_session)
@@ -24,6 +24,8 @@ def create_new_user(
     # 存入数据库
     new_user = create_user(request.username, hashed_password, session)
 
-    return "用户创建成功"
+    return UserResponse(
+        username=new_user.username
+    )
 
 

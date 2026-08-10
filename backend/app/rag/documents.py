@@ -37,7 +37,9 @@ def load_files(directory: Path) -> list[Document]:
     """
     documents = []
 
-    for file in Path(directory).iterdir():
+    for file in Path(directory).rglob("*"):
+        if file.is_dir():
+            continue
 
         suffix = file.suffix.lower()
 
@@ -47,10 +49,11 @@ def load_files(directory: Path) -> list[Document]:
             )
 
         loader = LOADER_MAP[suffix](file)
-
-        documents.extend(
-            loader.load()
-        )
+        loaded_docs = loader.load()
+        for doc in loaded_docs:
+            # 统一兜底source字段
+            doc.metadata.setdefault("source", str(file.name))
+            documents.append(doc)
 
     return documents
 
@@ -66,7 +69,12 @@ def load_file(
 
     loader = LOADER_MAP[suffix](file_path)
 
-    return loader.load()
+    documents = loader.load()
+
+    for doc in documents:
+        doc.metadata.setdefault("source", str(file_path.name))
+
+    return documents
 
 
 

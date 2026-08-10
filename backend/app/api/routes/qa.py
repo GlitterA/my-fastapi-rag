@@ -3,20 +3,24 @@ from loguru import logger
 from app.schema.chat_schema import ChatBody
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.runnables import Runnable
-from app.core.deps import get_rag_chain, get_chat_memory
+from app.core.deps import get_rag_chain, get_chat_memory, get_current_user
 from fastapi.responses import StreamingResponse
 from app.rag.memory import ChatMemory
 import json
+from app.model.user_model import User
+
 route = APIRouter()
 
 
 @route.post("/test/stream_chat")
 async def stream_chat_action(
-    request: ChatBody,
-    rag_chain: Runnable = Depends(get_rag_chain),
-    memory: ChatMemory = Depends(get_chat_memory)
+        request: ChatBody,
+        current_user: User = Depends(get_current_user),
+        memory: ChatMemory = Depends(get_chat_memory),
+        rag_chain: Runnable = Depends(get_rag_chain)
 ):
-    chat_history = memory.get_history(request.session_id)
+
+    chat_history = memory.get_history(current_user.username)
 
     logger.info(f"User message: {request.message}")
     logger.info(f"Chat history: {chat_history}")
@@ -63,11 +67,11 @@ async def stream_chat_action(
                 ) + "\n"
 
                 memory.add_message(
-                    request.session_id,
+                    current_user.username,
                     HumanMessage(content=request.message)
                 )
                 memory.add_message(
-                    request.session_id,
+                    current_user.username,
                     AIMessage(content=full_response)
                 )
 
@@ -76,14 +80,16 @@ async def stream_chat_action(
         media_type="application/x-ndjson"
     )
 
+
 @route.post("/test/chat")
 def chat_action(
         request: ChatBody,
+        current_user: User = Depends(get_current_user),
         memory: ChatMemory = Depends(get_chat_memory),
         rag_chain: Runnable = Depends(get_rag_chain)
 ):
     # 获取历史信息
-    chat_history = memory.get_history(request.session_id)
+    chat_history = memory.get_history(current_user.username)
 
     logger.info(f"User message: {request.message}")
     logger.info(f"Chat history: {chat_history}")

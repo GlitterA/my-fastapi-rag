@@ -16,7 +16,7 @@ class SplitterConfig(BaseModel):
     chunk_overlap: int = 50
 
 
-class Config(BaseSettings):
+class Config(BaseModel):
     chat: ChatConfig
     splitter: SplitterConfig
 

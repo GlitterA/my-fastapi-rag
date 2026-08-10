@@ -1,5 +1,5 @@
 from app.model.user_model import User
-from app.core.securiy import verify_password
+from app.core.security import verify_password
 from sqlmodel import Session, select
 from app.schema.user_schema import UserResponse
 
@@ -23,7 +23,7 @@ def create_user(
     session.add(user)
     session.commit()
     session.refresh(user)
-    return UserResponse(username=user.username)
+    return user
 
 def authenticate(username: str, password: str, session: Session) -> User | None:
     db_user = get_user_by_username(username, session)
