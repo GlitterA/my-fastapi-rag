@@ -6,14 +6,20 @@ from app.rag.ingest import ingest_files
 from loguru import logger
 from app.rag.chains import get_conversational_rag_chain, get_context_retriever_chain
 from app.rag.memory import ChatMemory
+from app.core.db import create_db_and_tables
 from pathlib import Path
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
 
+
+
+    logger.info("加载SQLite")
+    create_db_and_tables()
+
     logger.info("初始化RAG资源")
 
-    logger.info("初始化向量数据库")
+    logger.info("加载向量数据库")
     vector_store = init_vector_store()
     ingest_files(
         Path("./data/knowledge"),
@@ -24,6 +30,7 @@ async def lifespan(app: FastAPI):
     logger.info("初始化langchain调用链")
     retriever_chain = get_context_retriever_chain(vector_store)
     rag_chain = get_conversational_rag_chain(retriever_chain)
+
     app.state.rag_chain = rag_chain
 
     logger.info("初始化用户历史信息")

@@ -1,7 +1,7 @@
 from fastapi import Request
 from langchain_core.vectorstores import VectorStore
 from langchain_core.runnables import Runnable
-from langchain_core.documents import Document
+from app.rag.memory import ChatMemory
 
 
 def get_vector_store(request: Request) -> VectorStore:
@@ -11,5 +11,5 @@ def get_vector_store(request: Request) -> VectorStore:
 def get_rag_chain(request: Request) -> Runnable:
     return request.app.state.rag_chain
 
-def get_chat_memory(request: Request) -> list[Document]:
+def get_chat_memory(request: Request) -> ChatMemory:
     return request.app.state.chat_memory

@@ -1,50 +1,111 @@
 from fastapi import APIRouter, Depends
-from app.core.logger import logger
+from loguru import logger
 from app.schema.chat_schema import ChatBody
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.runnables import Runnable
 from app.core.deps import get_rag_chain, get_chat_memory
 from fastapi.responses import StreamingResponse
 from app.rag.memory import ChatMemory
-
+import json
 route = APIRouter()
 
-@route.post("/test/chat")
-async def chat_action(request: ChatBody,
-                      rag_chain: Runnable = Depends(get_rag_chain),
-                      memory: ChatMemory = Depends(get_chat_memory)):
+
+@route.post("/test/stream_chat")
+async def stream_chat_action(
+    request: ChatBody,
+    rag_chain: Runnable = Depends(get_rag_chain),
+    memory: ChatMemory = Depends(get_chat_memory)
+):
     chat_history = memory.get_history(request.session_id)
 
-    # 打印日志
     logger.info(f"User message: {request.message}")
     logger.info(f"Chat history: {chat_history}")
 
-    # 流式输出调用链
     async def generate():
         full_response = ""
+        references = []
 
-        async for chunk in rag_chain.astream(
-                {
-                    "chat_history": chat_history,
-                    "input": request.message
-                }
-        ):
-            full_response += chunk
+        try:
+            async for chunk in rag_chain.astream({
+                "chat_history": chat_history,
+                "input": request.message
+            }):
+                # 正文流式输出
+                if "answer" in chunk:
+                    text = chunk["answer"]
+                    full_response += text
+                    yield json.dumps(
+                        {"type": "token", "data": text},
+                        ensure_ascii=False
+                    ) + "\n"
 
-            yield chunk
+                # 收集来源
+                if "context" in chunk:
+                    for doc in chunk["context"]:
+                        references.append({
+                            "source": doc.metadata.get("source"),
+                            "content": doc.page_content
+                        })
 
-        # 更新历史
-        memory.add_message(
-            request.session_id,
-            HumanMessage(content=request.message)
+        except Exception:
+            logger.exception("RAG生成失败")
+            yield json.dumps(
+                {"type": "error", "data": "系统错误"},
+                ensure_ascii=False
+            ) + "\n"
 
-        )
-        memory.add_message(
-            request.session_id,
-            AIMessage(content=full_response)
-        )
+        finally:
+            # 流结束后发送来源
+            if full_response and not full_response.endswith("系统错误"):
+                yield json.dumps(
+                    {"type": "sources", "data": references},
+                    ensure_ascii=False
+                ) + "\n"
+
+                memory.add_message(
+                    request.session_id,
+                    HumanMessage(content=request.message)
+                )
+                memory.add_message(
+                    request.session_id,
+                    AIMessage(content=full_response)
+                )
 
     return StreamingResponse(
         generate(),
-        media_type="text/plain"
+        media_type="application/x-ndjson"
     )
+
+@route.post("/test/chat")
+def chat_action(
+        request: ChatBody,
+        memory: ChatMemory = Depends(get_chat_memory),
+        rag_chain: Runnable = Depends(get_rag_chain)
+):
+    # 获取历史信息
+    chat_history = memory.get_history(request.session_id)
+
+    logger.info(f"User message: {request.message}")
+    logger.info(f"Chat history: {chat_history}")
+
+    # 调用链
+    response = rag_chain.invoke(
+        {
+            "chat_history": chat_history,
+            "input": request.message
+        }
+    )
+    references = []
+
+    for doc in response["context"]:
+        references.append(
+            {
+                "source": doc.metadata.get("source"),
+                "content": doc.page_content
+            }
+        )
+
+    return {
+        "answer": response["answer"],
+        "references": references
+    }

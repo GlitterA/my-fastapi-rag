@@ -1,19 +1,32 @@
 from app.model.user_model import User
 from app.core.securiy import verify_password
+from sqlmodel import Session, select
+from app.schema.user_schema import UserResponse
 
-saved_username = {"张三": "$2b$12$r36cjRG.pnbVBHb/KBR/muWMMpE51ecyrDi2k81kYW0wBkFZvPSie",
-                  "李四": "$2b$12$Z6tJ3OviD.vlDmSnG57TTuV0lZL5mnkNuQxIo6Q78xUqAH7iGokgm",
-                  "王五": "$2b$12$Z6tJ3OviD.vlDmSnG57TTuV0lZL5mnkNuQxIo6Q78xUqAH7iGokgm"}
+def get_user_by_username(
+        username: str,
+        session: Session
+) -> User:
+    stmt = select(User).where(User.username == username)
+    return session.exec(statement=stmt).first()
 
 
-# TODO: 连接数据库后重写方法
-def get_user_by_username(username: str) -> User:
-    if username in saved_username:
-        return User(username=username, hashed_password=saved_username[username])
+def create_user(
+        username: str,
+        hashed_password: str,
+        session: Session
+):
+    user = User(
+        username=username,
+        hashed_password=hashed_password
+    )
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+    return UserResponse(username=user.username)
 
-
-def authenticate(username: str, password: str) -> User | None:
-    db_user = get_user_by_username(username=username)
+def authenticate(username: str, password: str, session: Session) -> User | None:
+    db_user = get_user_by_username(username, session)
     if not db_user:
         return None
     if not verify_password(password, db_user.hashed_password):

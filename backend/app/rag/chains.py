@@ -83,7 +83,7 @@ def build_stuff_documents_chain(
 def build_retrieval_chain(
         retriever: Runnable,
         document_chain: Runnable
-) -> Runnable[dict, str]:
+) -> Runnable[dict, dict]:
     """
     Runnable
     输入类型：
@@ -94,7 +94,10 @@ def build_retrieval_chain(
     return (
             RunnablePassthrough.assign(
                 context=retriever
-            ) | document_chain
+            )
+            .assign(
+                answer=document_chain
+            )
     )
 
 def get_context_retriever_chain(vector_store: VectorStore) \

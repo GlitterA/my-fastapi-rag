@@ -10,7 +10,7 @@ route = APIRouter()
 DOCUMENTS_DIR = Path("./data/knowledge")
 DOCUMENTS_DIR.mkdir(parents=True, exist_ok=True)
 
-@route.post("/documents/upload")
+@route.post("/upload")
 async def upload_document(
         file: UploadFile = File(...),
         vector_store: VectorStore = Depends(get_vector_store)
@@ -33,7 +33,7 @@ async def upload_document(
         "filename": file.filename
     }
 
-@route.get("/documents/")
+@route.get("")
 def list_documents():
     documents = []
     for file in DOCUMENTS_DIR.iterdir():
@@ -46,7 +46,7 @@ def list_documents():
             )
     return documents
 
-@route.delete("/documents/{filename}")
+@route.delete("/{filename}")
 def delete_document(
         filename: str,
         vector_store: VectorStore = Depends(get_vector_store)

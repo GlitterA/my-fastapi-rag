@@ -119,7 +119,8 @@ class ChatMemory:
         history = self.get_history(session_id)
         history.append(message)
         if len(history) > self.max_history_len:
-            del history[:-self.max_history_len]
+            history[:] = history[-self.max_history_len:]
+
 
         # 持久化
         self.append_to_file(session_id, message)
