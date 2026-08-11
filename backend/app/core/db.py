@@ -7,6 +7,7 @@ SQLITE_URL = os.getenv(
     "sqlite:///./data/SQLite/app.db"
 )
 
+
 # 创建 engine（数据库连接池）
 engine = create_engine(
     SQLITE_URL,
@@ -24,3 +25,6 @@ def get_session():
     from sqlmodel import Session
     with Session(engine) as session:
         yield session
+
+def get_engine():
+    return engine

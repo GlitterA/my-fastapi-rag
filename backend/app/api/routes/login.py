@@ -8,6 +8,8 @@ from app.core.settings import settings
 from app.core.security import create_access_token
 from sqlmodel import Session
 from app.core.db import get_session
+from loguru import logger
+
 route = APIRouter()
 
 @route.post("/login/access-token")
@@ -21,7 +23,7 @@ async def login_access_token(
     # 验权
     user = user_curd.authenticate(form_data.username, form_data.password, session)
     if not user:
-        raise HTTPException(status_code=400, detail="Incorrect username or password")
+        raise HTTPException(status_code=400, detail="用户名或密码错误")
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     return Token(
         access_token=create_access_token(

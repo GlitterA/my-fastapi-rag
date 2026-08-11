@@ -46,6 +46,7 @@ def ingest_file(
         file_path: Path,
         vector_store: VectorStore,
         uploader: str,
+        filename: str,
         batch_size=20
 ):
     # 获取文档
@@ -56,7 +57,7 @@ def ingest_file(
     chunks = get_text_splitter().split_documents(documents)
     # 添加元数据
     for chunk in chunks:
-        chunk.metadata["source"] = file_path.name
+        chunk.metadata["source"] = filename
         chunk.metadata["uploader"] = uploader
 
     logger.info(f"切分后的文档：{chunks}")

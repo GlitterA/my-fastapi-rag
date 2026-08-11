@@ -101,6 +101,15 @@ def chat_action(
             "input": request.message
         }
     )
+    memory.add_message(
+        current_user.username,
+        HumanMessage(content=request.message)
+    )
+
+    memory.add_message(
+        current_user.username,
+        AIMessage(content=response["answer"])
+    )
     references = []
 
     for doc in response["context"]:

@@ -1,7 +1,6 @@
 from app.model.user_model import User
 from app.core.security import verify_password
 from sqlmodel import Session, select
-from app.schema.user_schema import UserResponse
 
 def get_user_by_username(
         username: str,

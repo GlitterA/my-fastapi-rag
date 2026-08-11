@@ -6,6 +6,7 @@ import json
 from loguru import logger
 from app.config import configs
 
+
 class ChatMemory:
 
     def __init__(self):
@@ -23,8 +24,13 @@ class ChatMemory:
         """
         # 最大历史对话条目数
         self.max_history_len = configs.chat.max_history
-        # 本地存储路径
-        self.save_dir = Path(configs.chat.save_dir)
+        # 本地存储路径（区分生产和测试）
+        self.save_dir = Path(
+            os.getenv(
+                "CHAT_HISTORY_DIR",
+                configs.chat.save_dir
+            )
+        )
         self.save_dir.mkdir(
             parents=True,
             exist_ok=True
@@ -120,7 +126,6 @@ class ChatMemory:
         history.append(message)
         if len(history) > self.max_history_len:
             history[:] = history[-self.max_history_len:]
-
 
         # 持久化
         self.append_to_file(session_id, message)

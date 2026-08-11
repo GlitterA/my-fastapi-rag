@@ -27,10 +27,18 @@ dependencies = [
     "pyyaml (>=6.0.2,<7.0.0)",
     "grandalf (>=0.8,<0.9)",
     "pytest (>=9.1.1,<10.0.0)",
-    "httpx (>=0.28.1,<0.29.0)"
+    "httpx (>=0.28.1,<0.29.0)",
+    "setuptools (>=84.0.0,<85.0.0)",
+    "wheel (>=0.47.0,<0.48.0)",
+    "streamlit (>=1.61.1,<2.0.0)"
 ]
 
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "pytest-cov (>=7.1.0,<8.0.0)"
+]

@@ -19,5 +19,3 @@ build/
 # local data
 data/
 test.py
-
-test/

@@ -5,7 +5,7 @@ from langchain_community.document_loaders.csv_loader import CSVLoader
 from langchain_community.document_loaders.json_loader import JSONLoader
 from langchain_community.document_loaders.text import TextLoader
 from langchain_community.document_loaders.pdf import PyPDFLoader
-
+from loguru import logger
 from pathlib import Path
 
 LOADER_MAP = {
@@ -43,6 +43,7 @@ def load_files(directory: Path) -> list[Document]:
 
         suffix = file.suffix.lower()
 
+        # logger.info(f"suffix：{suffix}")
         if suffix not in LOADER_MAP:
             raise ValueError(
                 f"不支持的文件格式: {suffix}"

@@ -9,6 +9,7 @@ from app.core.db import get_session
 from app.model.user_model import User
 from app.crud.user_curd import get_user_by_username
 
+
 def get_vector_store(request: Request) -> VectorStore:
     return request.app.state.vector_store
 
@@ -16,12 +17,14 @@ def get_vector_store(request: Request) -> VectorStore:
 def get_rag_chain(request: Request) -> Runnable:
     return request.app.state.rag_chain
 
+
 def get_chat_memory(request: Request) -> ChatMemory:
     return request.app.state.chat_memory
 
+
 def get_current_user(
-    token: str = Depends(oauth2_scheme),
-    session: Session = Depends(get_session)
+        token: str = Depends(oauth2_scheme),
+        session: Session = Depends(get_session)
 ) -> User:
     payload = decode_access_token(token)
 
@@ -40,4 +43,3 @@ def get_current_user(
         )
 
     return user
-
