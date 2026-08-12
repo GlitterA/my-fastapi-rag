@@ -19,37 +19,31 @@
 
 ## 系统架构
 
-```
-┌─────────────┐     ┌──────────────────────────────────────┐
-│   Client     │────▶│           FastAPI 后端                │
-│ (Swagger /   │     │                                      │
-│  Streamlit)  │     │  ┌──────────┐  ┌─────────────────┐  │
-└─────────────┘     │  │  JWT 鉴权 │  │  全局异常处理    │  │
-                    │  └────┬─────┘  └────────┬────────┘  │
-                    │       │                  │           │
-                    │  ┌────▼──────────────────▼────────┐  │
-                    │  │         路由层 (API Router)      │  │
-                    │  │  /create  /login  /qa  /documents│  │
-                    │  └────┬──────────────────┬────────┘  │
-                    │       │                  │           │
-                    │  ┌────▼─────┐    ┌───────▼────────┐  │
-                    │  │  会话管理  │    │  知识库管理     │  │
-                    │  │ (JSONL)   │    │ (CRUD + 向量)  │  │
-                    │  └────┬─────┘    └───────┬────────┘  │
-                    │       │                  │           │
-                    │  ┌────▼──────────────────▼────────┐  │
-                    │  │         RAG 核心引擎              │  │
-                    │  │  检索器 ──▶ 生成器 ──▶ 源引用     │  │
-                    │  └────┬──────────────────┬────────┘  │
-                    │       │                  │           │
-                    │  ┌────▼─────┐    ┌───────▼────────┐  │
-                    │  │ ChromaDB │    │  DashScope LLM  │  │
-                    │  └──────────┘    └────────────────┘  │
-                    │                                      │
-                    │  ┌──────────┐                        │
-                    │  │  SQLite  │ (用户 / 文件元数据)      │
-                    │  └──────────┘                        │
-                    └──────────────────────────────────────┘
+```mermaid
+flowchart TB
+    Client["Client<br/>Swagger / Streamlit"]
+
+    FastAPI["FastAPI 后端<br/><br/>JWT 鉴权<br/>全局异常处理<br/>API Router"]
+
+    Session["会话管理<br/>JSONL"]
+    Knowledge["知识库管理<br/>CRUD + 向量"]
+    RAG["RAG 核心引擎<br/><br/>检索器 → 生成器 → 源引用"]
+
+    Chroma["ChromaDB<br/>向量数据库"]
+    LLM["DashScope LLM<br/>大语言模型"]
+    SQLite["SQLite<br/>用户 / 文件元数据"]
+
+    Client -->|HTTP| FastAPI
+
+    FastAPI --> Session
+    FastAPI --> Knowledge
+    FastAPI --> RAG
+
+    RAG --> Chroma
+    RAG --> LLM
+    Session --> SQLite
+    Knowledge --> Chroma
+    Knowledge --> SQLite
 ```
 
 ## 核心特性
