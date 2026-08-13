@@ -1,5 +1,5 @@
 """
-SmartRAG API 客户端
+FinanceRAG API 客户端
 封装所有后端接口调用，统一处理鉴权和异常
 """
 import json

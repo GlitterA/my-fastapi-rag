@@ -1,5 +1,5 @@
 """
-SmartRAG 前端 — 对话 & 知识库 & 用户认证
+FinanceRAG 前端 — 对话 & 知识库 & 用户认证
 使用方式: streamlit run frontend/app.py
 """
 import streamlit as st
@@ -11,7 +11,7 @@ import knowledge_ui
 # 页面配置（必须是第一个 Streamlit 命令）
 # ═══════════════════════════════════════════════════════
 st.set_page_config(
-    page_title="SmartRAG",
+    page_title="FinanceRAG",
     page_icon="🤖",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -69,7 +69,7 @@ def render_auth():
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         st.markdown(
-            "<h1 style='text-align:center;margin-top:2rem;'>🤖 SmartRAG</h1>",
+            "<h1 style='text-align:center;margin-top:2rem;'>🤖 FinanceRAG</h1>",
             unsafe_allow_html=True,
         )
         st.markdown(
@@ -122,7 +122,7 @@ def render_auth():
 # ═══════════════════════════════════════════════════════
 def render_main():
     with st.sidebar:
-        st.title("🤖 SmartRAG")
+        st.title("🤖 FinanceRAG")
 
         # 用户信息
         st.caption(f"👤 {st.session_state.username}")
