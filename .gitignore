@@ -13,8 +13,16 @@ dist/
 build/
 *.spec
 
+# Test / coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
 # Environment
 .env
+
+# Streamlit
+.streamlit/
 
 # local data
 data/

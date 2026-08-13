@@ -1,5 +1,4 @@
-# 负责初始化向量数据库
-
+# 负责向量数据库相关操作
 from app.core.settings import settings
 from langchain_chroma import Chroma
 from langchain_community.embeddings import DashScopeEmbeddings
@@ -16,7 +15,7 @@ def init_vector_store():
         dashscope_api_key=settings.DASHSCOPE_API_KEY
     )
     vector_store = Chroma(
-        collection_name="test",
+        collection_name="knowledge_base",
         embedding_function=embeddings,
         persist_directory=persist_directory
     )
@@ -25,3 +24,4 @@ def init_vector_store():
 
 def is_empty(vector_store):
     return vector_store._collection.count() == 0
+

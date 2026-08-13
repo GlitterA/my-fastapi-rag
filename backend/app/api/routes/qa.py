@@ -12,7 +12,7 @@ from app.model.user_model import User
 route = APIRouter()
 
 
-@route.post("/test/stream_chat")
+@route.post("/stream_chat")
 async def stream_chat_action(
         request: ChatBody,
         current_user: User = Depends(get_current_user),
@@ -81,7 +81,7 @@ async def stream_chat_action(
     )
 
 
-@route.post("/test/chat")
+@route.post("/chat")
 def chat_action(
         request: ChatBody,
         current_user: User = Depends(get_current_user),

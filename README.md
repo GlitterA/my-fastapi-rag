@@ -8,7 +8,7 @@
 |------|---------|
 | Web 框架 | FastAPI（异步）+ Uvicorn |
 | LLM | 阿里百炼 DashScope（qwen3.7-plus） |
-| Embedding | DashScope text-embedding-v2 |
+| Embedding | DashScope qwen3.7-text-embedding |
 | 向量数据库 | ChromaDB |
 | 关系数据库 | SQLite + SQLModel ORM |
 | RAG 框架 | LangChain（手动搭链，非高层封装） |
@@ -77,6 +77,28 @@ flowchart TB
 - bcrypt 密码哈希 + HS256 签名
 - 接口级鉴权（除注册/登录外全部需要 Token）
 
+## 检索效果评估
+
+基于 **70 条人工标注评估集**（覆盖 5 类金融监管文件、easy / medium / hard 三档难度，含 7 条跨文档对比问题），使用 `Recall@k` 对检索器进行量化评测。
+
+### 评测结果
+
+| 检索策略 | Recall@1   | Recall@2   | Recall@3   |
+|---------|------------|------------|------------|
+| 向量检索（k=5） | **85.71%** | **100%**   | **100%**   |
+| BM25（k=5） | **68.57%** | **85.71%** | **91.43%** |
+
+### 混合检索的取舍
+
+项目实现了 **BM25（jieba 中文分词）+ 向量检索 + RRF 加权融合** 的混合检索链路（`retriever.py`），并单独评测了三者的召回率。
+
+结论：在当前 5 份监管文件的语料规模下，**向量检索已接近饱和（Recall@3 = 100%），混合检索未带来显著增益**。因此：
+
+- 生产链路以向量检索为主，保留混合检索实现，便于语料规模扩大后一键切换
+- 评估体系可复现：`cd backend && python evaluation/evaluate_retrieval.py`
+
+> 说明：相比"实现了混合检索"本身，"通过数据证明当前场景不需要混合检索"是更有价值的工程决策——避免为优化而优化。
+
 ## 快速开始
 
 ### 环境要求
@@ -142,14 +164,14 @@ poetry run pytest test/ -v
 
 ## API 概览
 
-| 方法 | 路径 | 说明 | 鉴权 |
-|------|------|------|------|
-| POST | `/create` | 用户注册 | 否 |
-| POST | `/login/access-token` | 登录获取 Token | 否 |
-| POST | `/qa/{username}/chat` | 非流式问答 | 是 |
-| POST | `/qa/{username}/stream_chat` | 流式问答（NDJSON） | 是 |
-| POST | `/documents/upload` | 上传文档 | 是 |
-| GET | `/documents` | 文档列表 | 是 |
+| 方法 | 路径                      | 说明 | 鉴权 |
+|------|-------------------------|------|------|
+| POST | `/create`               | 用户注册 | 否 |
+| POST | `/login/access-token`   | 登录获取 Token | 否 |
+| POST | `/qa/chat`         | 非流式问答 | 是 |
+| POST | `/qa/stream_chat`  | 流式问答（NDJSON） | 是 |
+| POST | `/documents/upload`     | 上传文档 | 是 |
+| GET | `/documents`            | 文档列表 | 是 |
 | DELETE | `/documents/{filename}` | 删除文档 | 是 |
 
 ### 流式响应格式
@@ -208,7 +230,14 @@ sr/
     │       ├── splitter.py     # 文本切分器
     │       ├── vectorstore.py  # 向量数据库操作
     │       ├── memory.py       # 会话记忆管理
+    │       ├── retriever.py    # BM25 + RRF 混合检索
     │       └── ingest.py       # 文档入库流水线
+    ├── evaluation/             # 检索效果评估
+    │   ├── evaluate_retrieval.py # 评估脚本（Recall@k）
+    │   └── queries.json        # 70 条标注评估集
+    ├── scripts/                # 运维脚本
+    │   ├── ingest_knowledge.py # 知识库初始化入库（幂等）
+    │   └── reset_rag.py        # 一键重置 RAG 数据
     ├── test/
     │   ├── conftest.py         # pytest 配置 + fixtures
     │   ├── fake_rag.py         # 测试用假 RAG 链

@@ -1,5 +1,5 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
-
+from pathlib import Path
 
 class Settings(BaseSettings):
     # JWT签名密钥
@@ -15,8 +15,13 @@ class Settings(BaseSettings):
     # 运行环境配置
     ENVIRONMENT: str = "development"
 
+    # model_config = SettingsConfigDict(
+    #     env_file=".env"
+    # )
+    # 绝对路径寻找.env
     model_config = SettingsConfigDict(
-        env_file=".env"
+        env_file=Path(__file__).resolve().parent.parent.parent / ".env",
+        extra="ignore"
     )
 
 

@@ -1,5 +1,11 @@
 from sqlmodel import SQLModel, create_engine
 import os
+from pathlib import Path
+BASE_DIR = Path(__file__).resolve().parents[2]
+DATA_DIR = BASE_DIR / "data"
+SQLITE_DIR = DATA_DIR / "SQLite"
+
+SQLITE_DIR.mkdir(parents=True, exist_ok=True)
 
 # SQLite 数据库文件路径
 SQLITE_URL = os.getenv(

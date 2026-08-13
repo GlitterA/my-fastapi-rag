@@ -37,7 +37,7 @@ class RAGClient:
     def chat(self, message: str, token: str) -> dict:
         """非流式问答"""
         resp = httpx.post(
-            f"{self.base_url}/qa/test/chat",
+            f"{self.base_url}/qa/chat",
             json={"message": message},
             headers=self._auth(token),
             timeout=60,
@@ -53,7 +53,7 @@ class RAGClient:
         """
         with httpx.stream(
             "POST",
-            f"{self.base_url}/qa/test/stream_chat",
+            f"{self.base_url}/qa/stream_chat",
             json={"message": message},
             headers=self._auth(token),
             timeout=None,

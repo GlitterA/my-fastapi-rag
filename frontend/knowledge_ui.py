@@ -6,6 +6,9 @@ import streamlit as st
 
 def render(api):
     st.title("📚 知识库管理")
+    # ── 初始化上传器版本 ─────────────────────────────
+    if "uploader_version" not in st.session_state:
+        st.session_state.uploader_version = 0
 
     # ── 上传区域 ─────────────────────────────────────
     st.subheader("📤 上传文档")
@@ -13,7 +16,7 @@ def render(api):
     uploaded_file = st.file_uploader(
         "拖拽或点击上传，支持 TXT / PDF / CSV / JSON",
         type=["txt", "pdf", "csv", "json"],
-        key="doc_uploader",
+        key=f"doc_uploader_{st.session_state.uploader_version}",
     )
 
     if uploaded_file:
@@ -25,6 +28,8 @@ def render(api):
                     st.session_state.token,
                 )
                 st.success(f"✅ {result.get('message', '上传成功')}")
+                # 更换 uploader 的 key # 下一次 rerun 后，上传框会变成一个全新的空 uploader
+                st.session_state.uploader_version += 1
                 st.rerun()
             except Exception as e:
                 st.error(f"上传失败：{e}")
